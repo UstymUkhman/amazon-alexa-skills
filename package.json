@@ -1,0 +1,27 @@
+{
+  "name": "chuck-norris-jokes",
+  "version": "1.0.0",
+  "description": "Amazon Alexa skill for Chuck Norris jokes",
+  "main": "lambda.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UstymUkhman/chuck-norris-jokes.git"
+  },
+  "keywords": [
+    "chuck norris",
+    "jokes",
+    "alexa"
+  ],
+  "author": "Ustym Ukhman",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/UstymUkhman/chuck-norris-jokes/issues"
+  },
+  "homepage": "https://github.com/UstymUkhman/chuck-norris-jokes#readme",
+  "devDependencies": {
+    "chucknorris-io": "^1.0.5"
+  }
+}
