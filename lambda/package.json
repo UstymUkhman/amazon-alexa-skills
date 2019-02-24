@@ -1,0 +1,9 @@
+{
+  "name": "chuck-norris-jokes",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "alexa-sdk": "^1.0.25",
+    "chucknorris-io": "^1.0.5"
+  }
+}

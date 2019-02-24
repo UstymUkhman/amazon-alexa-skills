@@ -2,7 +2,7 @@
   "name": "chuck-norris-jokes",
   "version": "1.0.0",
   "description": "Amazon Alexa skill for Chuck Norris jokes",
-  "main": "lambda.js",
+  "main": "lambda/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -20,8 +20,5 @@
   "bugs": {
     "url": "https://github.com/UstymUkhman/chuck-norris-jokes/issues"
   },
-  "homepage": "https://github.com/UstymUkhman/chuck-norris-jokes#readme",
-  "devDependencies": {
-    "chucknorris-io": "^1.0.5"
-  }
+  "homepage": "https://github.com/UstymUkhman/chuck-norris-jokes#readme"
 }
