@@ -11,14 +11,14 @@ const Chuck  = require('chucknorris-io');
 const Alexa  = require('alexa-sdk');
 const client = new Chuck();
 
-console.log('-->  ' + client.hostName);
-
 const HELP_REPROMPT = 'Do you want to hear a Chuck Norris joke?';
 const HELP = 'You can say, tell me a tell me a Chuck Norris joke, or, you can say tell me a Chuck Norris joke in some category...';
 const UNHANDLED = 'Sorry, I\'m not sure I understood what you asked... ' + HELP_REPROMPT;
 const WELCOME = 'Hi! ' + HELP_REPROMPT;
 const STOP = 'It was fun!';
 const CANCEL = 'OK.';
+
+let lastCategory = null;
 
 const categories = [
   'explicit',
@@ -62,11 +62,52 @@ const handlers = {
 
   'TellJokeIntent': function () {
     const category = checkCategory(this.event.request.intent.slots.category);
-    const response = categories.includes(category) ? category : 'I\'ll be glad to help you.';
+    const that = this;
 
-    console.log(response);
-    
-    this.emit(":ask", response);
+    if (!categories.includes(category)) {
+      client.getRandomJoke().then(function (response) {
+        console.log('Recived current random joke: ' + response.value);
+        that.emit(":tell", response.value);
+      }).catch(function (err) {
+        console.error('Error occured while hanling a random joke.', err);
+        that.emit(":ask", UNHANDLED);
+      });
+    } else {
+      client.getRandomJoke(category).then(function (response) {
+        console.log('Recived current random joke in \'' + category + '\' category: ' + response.value);
+        that.emit(":tell", response.value);
+        lastCategory = category;
+      }).catch(function (err) {
+        console.error('Error occured while hanling \'' + category + '\' random joke.', err);
+        that.emit(":ask", UNHANDLED);
+      });
+    }
+  },
+
+  'AnotherJokeIntent': function () {
+    const that = this;
+
+    if (lastCategory === null) {
+      client.getRandomJoke().then(function (response) {
+        console.log('Recived current random joke: ' + response.value);
+        that.emit(":tell", response.value);
+      }).catch(function (err) {
+        console.error('Error occured while hanling another random joke.', err);
+        that.emit(":ask", UNHANDLED);
+      });
+    } else {
+      client.getRandomJoke(lastCategory).then(function (response) {
+        console.log('Recived current random joke in \'' + lastCategory + '\' category: ' + response.value);
+        that.emit(":tell", response.value);
+      }).catch(function (err) {
+        console.error('Error occured while hanling another random joke in \'' + lastCategory + '\' category.', err);
+        that.emit(":ask", UNHANDLED);
+      });
+    }
+  },
+
+  'CategoriesJokeIntent': function () {
+    // List all jokes' categories...
   },
   
   'Unhandled': function () {
@@ -92,178 +133,3 @@ exports.handler = (event, context) => {
   alexa.appId = APP_ID;
   alexa.execute();
 };
-
-//    END of Intent Handlers {} ========================================================================================
-// 3. Helper Function  =================================================================================================
-
-
-/*
-function delegateSlotCollection(){
-  console.log("in delegateSlotCollection");
-  console.log("current dialogState: "+this.event.request.dialogState);
-    if (this.event.request.dialogState === "STARTED") {
-      console.log("in Beginning");
-    let updatedIntent= null;
-    // updatedIntent=this.event.request.intent;
-      //optionally pre-fill slots: update the intent object with slot values for which
-      //you have defaults, then return Dialog.Delegate with this updated intent
-      // in the updatedIntent property
-      //this.emit(":delegate", updatedIntent); //uncomment this is using ASK SDK 1.0.9 or newer
-
-    //this code is necessary if using ASK SDK versions prior to 1.0.9
-    if(this.isOverridden()) {
-      return;
-    }
-    this.handler.response = buildSpeechletResponse({
-      sessionAttributes: this.attributes,
-      directives: getDialogDirectives('Dialog.Delegate', updatedIntent, null),
-      shouldEndSession: false
-    });
-    this.emit(':responseReady', updatedIntent);
-
-    } else if (this.event.request.dialogState !== "COMPLETED") {
-      console.log("in not completed");
-      // return a Dialog.Delegate directive with no updatedIntent property.
-      //this.emit(":delegate"); //uncomment this is using ASK SDK 1.0.9 or newer
-
-    //this code necessary is using ASK SDK versions prior to 1.0.9
-    if(this.isOverridden()) {
-      return;
-    }
-    this.handler.response = buildSpeechletResponse({
-      sessionAttributes: this.attributes,
-      directives: getDialogDirectives('Dialog.Delegate', null, null),
-      shouldEndSession: false
-    });
-    this.emit(':responseReady');
-
-    } else {
-      console.log("in completed");
-      console.log("returning: "+ JSON.stringify(this.event.request.intent));
-      // Dialog is now complete and all required slots should be filled,
-      // so call your normal intent handler.
-      return this.event.request.intent;
-    }
-}
-
-function randomPhrase(array) {
-    // the argument is an array [] of words or phrases
-    let i = 0;
-    i = Math.floor(Math.random() * array.length);
-    return(array[i]);
-}
-
-function isSlotValid(request, slotName){
-        let slot = request.intent.slots[slotName];
-        //console.log("request = "+JSON.stringify(request)); //uncomment if you want to see the request
-        let slotValue;
-
-        //if we have a slot, get the text and store it into speechOutput
-        if (slot && slot.value) {
-            //we have a value in the slot
-            slotValue = slot.value.toLowerCase();
-            return slotValue;
-        } else {
-            //we didn't get a value in the slot.
-            return false;
-        }
-}
-
-//These functions are here to allow dialog directives to work with SDK versions prior to 1.0.9
-//will be removed once Lambda templates are updated with the latest SDK
-
-function createSpeechObject(optionsParam) {
-    if (optionsParam && optionsParam.type === 'SSML') {
-        return {
-            type: optionsParam.type,
-            ssml: optionsParam['speech']
-        };
-    } else {
-        return {
-            type: optionsParam.type || 'PlainText',
-            text: optionsParam['speech'] || optionsParam
-        };
-    }
-}
-
-function buildSpeechletResponse(options) {
-    let alexaResponse = {
-        shouldEndSession: options.shouldEndSession
-    };
-
-    if (options.output) {
-        alexaResponse.outputSpeech = createSpeechObject(options.output);
-    }
-
-    if (options.reprompt) {
-        alexaResponse.reprompt = {
-            outputSpeech: createSpeechObject(options.reprompt)
-        };
-    }
-
-    if (options.directives) {
-        alexaResponse.directives = options.directives;
-    }
-
-    if (options.cardTitle && options.cardContent) {
-        alexaResponse.card = {
-            type: 'Simple',
-            title: options.cardTitle,
-            content: options.cardContent
-        };
-
-        if(options.cardImage && (options.cardImage.smallImageUrl || options.cardImage.largeImageUrl)) {
-            alexaResponse.card.type = 'Standard';
-            alexaResponse.card['image'] = {};
-
-            delete alexaResponse.card.content;
-            alexaResponse.card.text = options.cardContent;
-
-            if(options.cardImage.smallImageUrl) {
-                alexaResponse.card.image['smallImageUrl'] = options.cardImage.smallImageUrl;
-            }
-
-            if(options.cardImage.largeImageUrl) {
-                alexaResponse.card.image['largeImageUrl'] = options.cardImage.largeImageUrl;
-            }
-        }
-    } else if (options.cardType === 'LinkAccount') {
-        alexaResponse.card = {
-            type: 'LinkAccount'
-        };
-    } else if (options.cardType === 'AskForPermissionsConsent') {
-        alexaResponse.card = {
-            type: 'AskForPermissionsConsent',
-            permissions: options.permissions
-        };
-    }
-
-    let returnResult = {
-        version: '1.0',
-        response: alexaResponse
-    };
-
-    if (options.sessionAttributes) {
-        returnResult.sessionAttributes = options.sessionAttributes;
-    }
-    return returnResult;
-}
-
-function getDialogDirectives(dialogType, updatedIntent, slotName) {
-    let directive = {
-        type: dialogType
-    };
-
-    if (dialogType === 'Dialog.ElicitSlot') {
-        directive.slotToElicit = slotName;
-    } else if (dialogType === 'Dialog.ConfirmSlot') {
-        directive.slotToConfirm = slotName;
-    }
-
-    if (updatedIntent) {
-        directive.updatedIntent = updatedIntent;
-    }
-    return [directive];
-}
-
-*/
