@@ -10,5 +10,3 @@ pids
 .idea
 .vscode
 node_modules
-*.code-workspace
-*.sublime-workspace

@@ -1,24 +1,23 @@
 {
-  "name": "chuck-norris-jokes",
+  "name": "amazon-alexa-skills",
   "version": "1.0.0",
-  "description": "Amazon Alexa skill for Chuck Norris jokes",
-  "main": "lambda/index.js",
+  "description": "Get random advices from Amazon Alexa",
+  "main": "random-advices/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/UstymUkhman/chuck-norris-jokes.git"
+    "url": "git+https://github.com/UstymUkhman/amazon-alexa-skills.git"
   },
   "keywords": [
-    "chuck norris",
-    "jokes",
+    "movie quotes",
     "alexa"
   ],
   "author": "Ustym Ukhman",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/UstymUkhman/chuck-norris-jokes/issues"
+    "url": "https://github.com/UstymUkhman/amazon-alexa-skills/issues"
   },
-  "homepage": "https://github.com/UstymUkhman/chuck-norris-jokes#readme"
+  "homepage": "https://github.com/UstymUkhman/amazon-alexa-skills#readme"
 }
