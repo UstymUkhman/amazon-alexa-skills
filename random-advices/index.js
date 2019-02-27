@@ -29,15 +29,20 @@ const handlers = {
     const _this = this;
 
     unirest.get(ENDPOINT).end(function (result) {
-      const responce = JSON.parse(result.body);
-      _this.emit(':tell', responce.slip.advice);
+      const response = JSON.parse(result.body);
+
+      _this.response.shouldEndSession = false;
+      _this.response.speak(response.slip.advice);
+
+      _this.response.listen();
+      _this.emit(':responseReady');
     });
   },
-  
+
   'Unhandled': function () {
     this.emit(':ask', UNHANDLED);
   },
-  
+
   'AMAZON.CancelIntent': function () {
     this.emit(':tell', CANCEL);
   },
@@ -45,7 +50,7 @@ const handlers = {
   'AMAZON.StopIntent': function () {
     this.emit(':tell', STOP);
   },
-  
+
   'SessionEndedRequest': function () {
     this.emit(':tell', STOP);
   }
