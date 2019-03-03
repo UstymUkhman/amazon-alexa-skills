@@ -10,17 +10,21 @@ const Alexa  = require('alexa-sdk');
 const https  = require('https');
 const ID     = '85f3fd29';
 
-const HELP_REPROMPT   = 'What word do you want to know the meaning?';
-const HELP            = 'You can say, what does some word mean... or you can say what is some word';
-const UNHANDLED       = 'Sorry, I\'m not sure I understood what you asked... ' + HELP_REPROMPT;
-const ANOTHER_MEANING = 'Say another if you want to hear another meaning of ';
-const NO_MEANING      = 'Sorry, I haven\'t found any meaning of ';
-const WELCOME         = 'Hi! ' + HELP_REPROMPT;
-const STOP            = 'Hope it was helpfull!';
-const CANCEL          = 'OK.';
-const meanings        = [];
+const HELP_REPROMPT    = 'What word do you want to know the meaning?';
+const HELP             = 'You can say, what does some word mean... or you can say what is some word';
+const UNHANDLED        = 'Sorry, I\'m not sure I understood what you asked... ' + HELP_REPROMPT;
+const REPEAT_MEANINGS  = 'Say repeat the meaning if you want to hear again a meaning of ';
+const ANOTHER_MEANING  = 'Say give me another if you want to hear another meaning of ';
+const NO_OTHER_MEANING = 'Sorry, I haven\'t found any other meaning of ';
+const NO_WORD          = 'You have ask me nothing yet. ' + HELP_REPROMPT;
+const NO_MEANING       = 'Sorry, I haven\'t found any meaning of ';
+const WELCOME          = 'Hi! ' + HELP_REPROMPT;
+const STOP             = 'Hope it was helpfull!';
+const CANCEL           = 'OK.';
 
-let index = 0;
+let index    = 0;
+let word     = '';
+let meanings = [];
 
 function parseData (data) {
   const result = JSON.parse(data).results[0];
@@ -54,16 +58,18 @@ function parseData (data) {
       }
     }
   }
+
+  index = 0;
 }
 
-function playMeaning (that, word) {
+function parseMeaning (word) {
   const meaning = meanings[index];
   const domain = meaning.domain ? `in ${meaning.domain} ` : '';
-  const etymology = meaning.etymology ? `Etymology: ${meaning.etymology}` : '';
-  const definition = `The definition of ${word} ${domain} is: ${meaning.definition}... ${etymology}`;
+  const etymology = meaning.etymology ? `... Etymology: ${meaning.etymology}` : '';
+  const definition = `The definition of ${word} ${domain} is: ${meaning.definition} ${etymology}`;
 
-  that.response.speak(definition);
   index++;
+  return definition;
 }
 
 const handlers = {
@@ -76,7 +82,7 @@ const handlers = {
   },
 
   'GiveDefinitionIntent': function () {
-    const word = this.event.request.intent.slots.word.value;
+    word = this.event.request.intent.slots.something.value;
     const _this = this;
 
     https.get({
@@ -98,24 +104,69 @@ const handlers = {
 
       .on('end', function () {
         parseData(data);
-        const last = meanings.length - 1;
-
         _this.response.shouldEndSession = false;
 
         if (!meanings.length) {
           _this.response.speak(NO_MEANING + word);
         } else {
-          playMeaning(_this, word);
+          let definition = parseMeaning(word);
 
-          if (index < last) {
-            _this.response.speak(ANOTHER_MEANING + word);
+          if (index < meanings.length) {
+            definition = `${definition}... ${ANOTHER_MEANING + word}`;
           }
+
+          _this.response.speak(definition);
         }
 
         _this.response.listen();
         _this.emit(':responseReady');
       })
     })
+  },
+
+  'AnotherDefinitionIntent': function () {
+    let ended = index === meanings.length;
+    let definition;
+    
+    this.response.shouldEndSession = false;
+
+    if (word.length && !ended) {
+      definition = parseMeaning(word);
+
+      if (index < meanings.length) {
+        definition = `${definition}... ${ANOTHER_MEANING + word}`;
+      }
+    } else if (!word.length) {
+      definition = NO_WORD;
+    } else if (ended) {
+      definition = `${NO_OTHER_MEANING + word}... ${REPEAT_MEANINGS + word}`;
+      index = -1;
+    }
+
+    this.response.speak(definition);
+    this.response.listen();
+    this.emit(':responseReady');
+  },
+
+  'RepeatDefinitionIntent': function () {
+    let definition;
+
+    this.response.shouldEndSession = false;
+
+    if (word.length) {
+      index = index < 0 ? 0 : (index - 1);
+      definition = parseMeaning(word);
+
+      if (index < meanings.length) {
+        definition = `${definition}... ${ANOTHER_MEANING + word}`;
+      }
+    } else {
+      definition = NO_WORD;
+    }
+
+    this.response.speak(definition);
+    this.response.listen();
+    this.emit(':responseReady');
   },
 
   'Unhandled': function () {
