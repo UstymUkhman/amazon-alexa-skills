@@ -1,6 +1,8 @@
 /* eslint-disable func-names */
 /* eslint quote-props: ["error", "consistent"] */
 
+// 1: 0 - 50
+// 2: 51 - 117
 
 'use strict';
 
@@ -15,8 +17,8 @@ const WELCOME          = 'Hi! ' + HELP_REPROMPT;
 const STOP             = 'And then it was over.';
 const CANCEL           = 'OK.';
 
-function getRandomQuote () {
-  return Math.floor(Math.random() * QUOTES.length);
+function getRandomQuote (min, max) {
+  return Math.random() * (max - min) + min;
 }
 
 const handlers = {
@@ -29,7 +31,7 @@ const handlers = {
   },
 
   'GiveQuoteIntent': function () {
-    const index = getRandomQuote();
+    const index = getRandomQuote(0, QUOTES.length);
     const quote = QUOTES[index].text;
 
     this.response.shouldEndSession = false;
