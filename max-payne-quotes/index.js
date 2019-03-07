@@ -1,10 +1,6 @@
 /* eslint-disable func-names */
 /* eslint quote-props: ["error", "consistent"] */
 
-// 1: 0 - 50
-// 2: 51 - 117
-// 3: 118 - 213
-
 'use strict';
 
 const APP_ID = 'amzn1.ask.skill.cf5cae8f-729b-43d9-93dc-1d4a6c0876fd';
@@ -19,7 +15,7 @@ const STOP             = 'And then it was over.';
 const CANCEL           = 'OK.';
 
 function getRandomQuote (min, max) {
-  return Math.random() * (max - min) + min;
+  return Math.floor(Math.random() * (max - min) + min);
 }
 
 const handlers = {
@@ -33,6 +29,31 @@ const handlers = {
 
   'GiveQuoteIntent': function () {
     const index = getRandomQuote(0, QUOTES.length);
+    const quote = QUOTES[index].text;
+    const game = QUOTES[index].game;
+
+    this.response.shouldEndSession = false;
+    this.response.speak(`${quote}... ${game}`);
+
+    this.response.listen();
+    this.emit(':responseReady');
+  },
+
+  'GameQuoteIntent': function () {
+    const game = this.event.request.intent.slots.game.value;
+
+    let min = 0;
+    let max = 51;
+
+    if (game === 'two' || game === '2') {
+      min = 51;
+      max = 118;
+    } else if (game === 'three' || game === '3') {
+      min = 118;
+      max = 212;
+    }
+
+    const index = getRandomQuote(min, max);
     const quote = QUOTES[index].text;
 
     this.response.shouldEndSession = false;
