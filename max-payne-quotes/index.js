@@ -32,10 +32,7 @@ const handlers = {
     const quote = QUOTES[index].text;
     const game = QUOTES[index].game;
 
-    this.response.shouldEndSession = false;
     this.response.speak(`${quote}... ${game}`);
-
-    this.response.listen();
     this.emit(':responseReady');
   },
 
@@ -56,10 +53,7 @@ const handlers = {
     const index = getRandomQuote(min, max);
     const quote = QUOTES[index].text;
 
-    this.response.shouldEndSession = false;
     this.response.speak(quote);
-
-    this.response.listen();
     this.emit(':responseReady');
   },
 
